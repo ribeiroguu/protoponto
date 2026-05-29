@@ -102,7 +102,7 @@ class _ClosePointModalState extends State<ClosePointModal> {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 8),
 
                 _ModalField(
                   label: 'Projeto',
@@ -128,7 +128,6 @@ class _ClosePointModalState extends State<ClosePointModal> {
 
                 const SizedBox(height: 28),
 
-                // Botão de envio
                 Button(
                   text: 'Enviar',
                   onPressed: _handleSubmit,
@@ -143,7 +142,6 @@ class _ClosePointModalState extends State<ClosePointModal> {
   }
 }
 
-// Campo de input reutilizável dentro do modal
 class _ModalField extends StatelessWidget {
   final String label;
   final TextEditingController controller;

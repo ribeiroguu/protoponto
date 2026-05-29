@@ -24,7 +24,9 @@ class _HomescreenPageState extends State<HomescreenPage> {
   late String _tempoAtual;
   late Timer _timer;
 
-  // Lista de dias da semana em português
+  late DateTime? _punchStartTime;
+  late Duration _elapsedTime;
+
   static const List<String> _diasSemana = [
     'Domingo',
     'Segunda-feira',
@@ -50,17 +52,48 @@ class _HomescreenPageState extends State<HomescreenPage> {
     'dezembro'
   ];
 
+  /// Formata a duração decorrida no formato para o modal (HH:MM:SS)
+  String get _formattedElapsedTime {
+    final hours = _elapsedTime.inHours.toString().padLeft(2, '0');
+    final minutes =
+        (_elapsedTime.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds =
+        (_elapsedTime.inSeconds % 60).toString().padLeft(2, '0');
+    return '$hours:$minutes:$seconds';
+  }
+
+  /// Formata a duração decorrida no formato para o card (HH:MM)
+  String get _formattedElapsedTimeHM {
+    final hours = _elapsedTime.inHours.toString().padLeft(2, '0');
+    final minutes =
+        (_elapsedTime.inMinutes % 60).toString().padLeft(2, '0');
+    return '$hours:$minutes';
+  }
+
   void _handlePunchAction() {
     if (_isAdvancedState) {
+      if (_punchStartTime != null) {
+        _elapsedTime =
+            DateTime.now().difference(_punchStartTime!);
+      }
+
       ClosePointModal.show(
         context,
-        totalHours: '07h 15m',
+        totalHours: _formattedElapsedTime,
         onConfirm: () {
-          setState(() => _isAdvancedState = false);
+          setState(() {
+            _isAdvancedState = false;
+            _punchStartTime = null;
+            _elapsedTime = Duration.zero;
+          });
         },
       );
     } else {
-      setState(() => _isAdvancedState = true);
+      setState(() {
+        _isAdvancedState = true;
+        _punchStartTime = DateTime.now();
+        _elapsedTime = Duration.zero;
+      });
     }
   }
 
@@ -78,6 +111,9 @@ class _HomescreenPageState extends State<HomescreenPage> {
   @override
   void initState() {
     super.initState();
+    _punchStartTime = null;
+    _elapsedTime = Duration.zero;
+
     _atualizarDataHora();
     _timer = Timer.periodic(
       const Duration(seconds: 1),
@@ -89,6 +125,10 @@ class _HomescreenPageState extends State<HomescreenPage> {
     final agora = DateTime.now();
     final diaSemana = _diasSemana[agora.weekday % 7];
     final mesExtenso = _meses[agora.month - 1];
+
+    if (_isAdvancedState && _punchStartTime != null) {
+      _elapsedTime = agora.difference(_punchStartTime!);
+    }
 
     setState(() {
       _tempoAtual =
@@ -146,7 +186,10 @@ class _HomescreenPageState extends State<HomescreenPage> {
                       transitionBuilder: (child, animation) =>
                           FadeTransition(opacity: animation, child: child),
                       child: _isAdvancedState
-                          ? _AdvancedCards(key: const ValueKey('advanced'))
+                          ? _AdvancedCards(
+                              key: const ValueKey('advanced'),
+                              elapsedTime: _formattedElapsedTimeHM,
+                            )
                           : _InitialCards(key: const ValueKey('initial')),
                     ),
                   ],
@@ -184,7 +227,12 @@ class _InitialCards extends StatelessWidget {
 }
 
 class _AdvancedCards extends StatelessWidget {
-  const _AdvancedCards({super.key});
+  final String elapsedTime;
+
+  const _AdvancedCards({
+    required this.elapsedTime,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -192,7 +240,7 @@ class _AdvancedCards extends StatelessWidget {
       children: [
         InfoCard(
           title: 'Horas registradas',
-          subtitle: '07h 30m',
+          subtitle: elapsedTime,
           status: CardStatus.inProgress,
         ),
         InfoCard(
