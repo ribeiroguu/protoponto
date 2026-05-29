@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../components/app_colors.dart';
 import '../components/button.dart';
 import '../components/user_header.dart';
@@ -19,19 +20,46 @@ class _HomescreenPageState extends State<HomescreenPage> {
   bool _isAdvancedState = false;
   int _navIndex = 0;
 
+  late String _dataAtual;
+  late String _tempoAtual;
+  late Timer _timer;
+
+  // Lista de dias da semana em português
+  static const List<String> _diasSemana = [
+    'Domingo',
+    'Segunda-feira',
+    'Terça-feira',
+    'Quarta-feira',
+    'Quinta-feira',
+    'Sexta-feira',
+    'Sábado'
+  ];
+
+  static const List<String> _meses = [
+    'janeiro',
+    'fevereiro',
+    'março',
+    'abril',
+    'maio',
+    'junho',
+    'julho',
+    'agosto',
+    'setembro',
+    'outubro',
+    'novembro',
+    'dezembro'
+  ];
+
   void _handlePunchAction() {
     if (_isAdvancedState) {
-      // Está no estado avançado: abre modal antes de fechar o ponto
       ClosePointModal.show(
         context,
         totalHours: '07h 15m',
         onConfirm: () {
-          // Modal confirmado: volta para o estado inicial
           setState(() => _isAdvancedState = false);
         },
       );
     } else {
-      // Bater ponto: entra direto no estado avançado
       setState(() => _isAdvancedState = true);
     }
   }
@@ -45,6 +73,35 @@ class _HomescreenPageState extends State<HomescreenPage> {
     } else {
       setState(() => _navIndex = index);
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _atualizarDataHora();
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _atualizarDataHora(),
+    );
+  }
+
+  void _atualizarDataHora() {
+    final agora = DateTime.now();
+    final diaSemana = _diasSemana[agora.weekday % 7];
+    final mesExtenso = _meses[agora.month - 1];
+
+    setState(() {
+      _tempoAtual =
+          '${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')}:${agora.second.toString().padLeft(2, '0')}';
+      _dataAtual =
+          '$diaSemana, ${agora.day} de $mesExtenso de ${agora.year}';
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 
   @override
@@ -63,17 +120,14 @@ class _HomescreenPageState extends State<HomescreenPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const UserHeader(
-                      name: 'Usuário',
-                      role: 'Função',
-                    ),
+                    const UserHeader(name: 'Usuário', role: 'Função'),
                     const SizedBox(height: 36),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 400),
                       child: ClockDisplay(
                         key: ValueKey(_isAdvancedState),
-                        date: 'Segunda-feira, 25 de maio de 2026',
-                        time: _isAdvancedState ? '17:50:80' : '10:00:00',
+                        date: _dataAtual,
+                        time: _tempoAtual,
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -89,10 +143,8 @@ class _HomescreenPageState extends State<HomescreenPage> {
                     const SizedBox(height: 32),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 400),
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      ),
+                      transitionBuilder: (child, animation) =>
+                          FadeTransition(opacity: animation, child: child),
                       child: _isAdvancedState
                           ? _AdvancedCards(key: const ValueKey('advanced'))
                           : _InitialCards(key: const ValueKey('initial')),
@@ -101,10 +153,7 @@ class _HomescreenPageState extends State<HomescreenPage> {
                 ),
               ),
             ),
-            BottomNavBar(
-              currentIndex: _navIndex,
-              onTap: _handleNavTap,
-            ),
+            BottomNavBar(currentIndex: _navIndex, onTap: _handleNavTap),
           ],
         ),
       ),
