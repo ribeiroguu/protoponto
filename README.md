@@ -14,4 +14,4 @@ A motivação para o desenvolvimento do Protoponto é a necessidade de um sistem
 
 ## Resources
 
-- [Link 1](https://www.prototipe.tec.br/)
+- [Prototipe](https://www.prototipe.tec.br/)
