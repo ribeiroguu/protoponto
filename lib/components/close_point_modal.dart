@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'button.dart';
+import '../models/punch_record.dart';
 
 class ClosePointModal extends StatefulWidget {
   final String totalHours;
-  final VoidCallback onConfirm;
+  final Function(PunchRecord) onConfirm;
 
   const ClosePointModal({
     super.key,
@@ -15,7 +16,7 @@ class ClosePointModal extends StatefulWidget {
   static Future<bool?> show(
     BuildContext context, {
     required String totalHours,
-    required VoidCallback onConfirm,
+    required Function(PunchRecord) onConfirm,
   }) {
     return showGeneralDialog<bool>(
       context: context,
@@ -64,8 +65,17 @@ class _ClosePointModalState extends State<ClosePointModal> {
       );
       return;
     }
+
+    final punchRecord = PunchRecord(
+      project: _projectController.text.trim(),
+      developed: _developedController.text.trim(),
+      description: _descriptionController.text.trim(),
+      totalHours: widget.totalHours,
+      timestamp: DateTime.now(),
+    );
+
     Navigator.of(context).pop(true);
-    widget.onConfirm();
+    widget.onConfirm(punchRecord);
   }
 
   @override

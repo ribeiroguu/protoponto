@@ -7,6 +7,7 @@ import '../components/clock_display.dart';
 import '../components/info_card.dart';
 import '../components/bottom_nav_bar.dart';
 import '../components/close_point_modal.dart';
+import '../models/punch_record.dart';
 import 'history_page.dart';
 
 class HomescreenPage extends StatefulWidget {
@@ -26,6 +27,8 @@ class _HomescreenPageState extends State<HomescreenPage> {
 
   late DateTime? _punchStartTime;
   late Duration _elapsedTime;
+
+  late List<PunchRecord> _punchHistory;
 
   static const List<String> _diasSemana = [
     'Domingo',
@@ -80,12 +83,16 @@ class _HomescreenPageState extends State<HomescreenPage> {
       ClosePointModal.show(
         context,
         totalHours: _formattedElapsedTime,
-        onConfirm: () {
+        onConfirm: (PunchRecord record) {
+          _punchHistory.add(record);
+          
           setState(() {
             _isAdvancedState = false;
             _punchStartTime = null;
             _elapsedTime = Duration.zero;
           });
+          
+          print('Ponto registrado: $record');
         },
       );
     } else {
@@ -113,6 +120,7 @@ class _HomescreenPageState extends State<HomescreenPage> {
     super.initState();
     _punchStartTime = null;
     _elapsedTime = Duration.zero;
+    _punchHistory = [];
 
     _atualizarDataHora();
     _timer = Timer.periodic(
