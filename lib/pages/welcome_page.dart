@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import '../components/button.dart';
 import 'homescreen_page.dart';
 import '../components/app_colors.dart';
+import '../services/punch_service.dart';
 
 class WelcomePage extends StatelessWidget {
-  const WelcomePage({super.key});
+  final PunchService punchService;
+
+  const WelcomePage({required this.punchService, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +63,11 @@ class WelcomePage extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => HomescreenPage()),
+                    MaterialPageRoute(
+                      builder: (context) => HomescreenPage(
+                        punchService: punchService,
+                      ),
+                    ),
                   );
                 },
               ),

@@ -8,10 +8,13 @@ import '../components/info_card.dart';
 import '../components/bottom_nav_bar.dart';
 import '../components/close_point_modal.dart';
 import '../models/punch_record.dart';
+import '../services/punch_service.dart';
 import 'history_page.dart';
 
 class HomescreenPage extends StatefulWidget {
-  const HomescreenPage({super.key});
+  final PunchService punchService;
+
+  const HomescreenPage({required this.punchService, super.key});
 
   @override
   State<HomescreenPage> createState() => _HomescreenPageState();
@@ -29,6 +32,9 @@ class _HomescreenPageState extends State<HomescreenPage> {
   late Duration _elapsedTime;
 
   late List<PunchRecord> _punchHistory;
+
+  // Referência ao serviço de ponto
+  late PunchService _punchService;
 
   static const List<String> _diasSemana = [
     'Domingo',
@@ -83,8 +89,10 @@ class _HomescreenPageState extends State<HomescreenPage> {
       ClosePointModal.show(
         context,
         totalHours: _formattedElapsedTime,
-        onConfirm: (PunchRecord record) {
-          _punchHistory.add(record);
+        onConfirm: (PunchRecord record) async {
+          await _punchService.savePunch(record);
+          
+          _punchHistory.insert(0, record);
           
           setState(() {
             _isAdvancedState = false;
@@ -92,7 +100,7 @@ class _HomescreenPageState extends State<HomescreenPage> {
             _elapsedTime = Duration.zero;
           });
           
-          print('Ponto registrado: $record');
+          print('Ponto salvo no Hive: $record');
         },
       );
     } else {
@@ -118,9 +126,11 @@ class _HomescreenPageState extends State<HomescreenPage> {
   @override
   void initState() {
     super.initState();
+    _punchService = widget.punchService;
     _punchStartTime = null;
     _elapsedTime = Duration.zero;
-    _punchHistory = [];
+
+    _punchHistory = _punchService.getAllPunches();
 
     _atualizarDataHora();
     _timer = Timer.periodic(
